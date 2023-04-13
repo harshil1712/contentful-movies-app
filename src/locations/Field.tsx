@@ -4,16 +4,15 @@ import {
   FormControl,
   TextInput,
   Button,
-  AssetCard,
-  MenuItem,
 } from '@contentful/f36-components';
 import { FieldExtensionSDK } from '@contentful/app-sdk';
 import { useAutoResizer, useCMA, useSDK } from '@contentful/react-apps-toolkit';
 
 export interface Movie {
+  id?: string;
   name: string;
   image: string;
-  description: string;
+  description?: string;
 }
 
 const Field = () => {
@@ -29,17 +28,38 @@ const Field = () => {
   const openDialog = async () => {
     const { sys } = await cma.space.get({});
     const { id } = sys;
+    let existingEntries: Movie[] | null = []
+    const entry = await cma.entry.getMany({
+      query: {
+        content_type: 'movies',
+        'fields.title[match]': movieSearch,
+      }
+    })
+    if (entry.items.length !== 0) {
+      for (let movie of entry.items) {
+        let asset = await cma.asset.get({
+          assetId: movie.fields.poster["en-US"].sys.id
+        })
+        existingEntries.push({
+          id: movie.sys.id,
+          name: movie.fields.title["en-US"],
+          image: `http:${asset.fields.file["en-US"].url}`
+        })
+      }
+    }
     const movie = await sdk.dialogs.openCurrentApp({
       width: 700,
+      // @ts-expect-error
       parameters: {
         movieName: movieSearch,
+        existingEntries: existingEntries
       },
       title: 'Movie Search Results',
       allowHeightOverflow: true,
       shouldCloseOnEscapePress: true,
       shouldCloseOnOverlayClick: true,
     });
-    if (movie) {
+    if ("name" in movie) {
       setMovieSearch('')
       setMovieData(movie);
       titleField.setValue(movie.name)
@@ -73,10 +93,14 @@ const Field = () => {
         }
       }, 'en-US')
     }
+    else {
+      cma.entry.delete({ entryId: sdk.ids.entry })
+      sdk.navigator.openEntry(movie.entryId);
+    }
   };
 
 
-  if (movieData === null) {
+  if (!titleField.getValue() && !movieData) {
     return (
       <Form onSubmit={() => openDialog()}>
         <FormControl>

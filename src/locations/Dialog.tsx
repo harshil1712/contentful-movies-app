@@ -9,12 +9,18 @@ export interface Movie {
   overview: string;
 }
 
+interface ExistingMovie {
+  id: string;
+  name: string;
+  image: string;
+}
+
 const Dialog = () => {
   const sdk = useSDK<DialogExtensionSDK>();
   useAutoResizer();
 
   const [movie, setMovie] = useState<Movie[] | undefined>();
-
+  const [existingMovies, setExistingMovies] = useState<ExistingMovie[]>()
   const { apiKey } = sdk.parameters.installation;
 
   const fetchData = async (searchTerm: string) => {
@@ -26,6 +32,8 @@ const Dialog = () => {
   };
 
   useEffect(() => {
+    // @ts-expect-error
+    setExistingMovies(sdk.parameters.invocation.existingEntries)
     // @ts-expect-error
     fetchData(sdk.parameters.invocation.movieName);
   }, [sdk.parameters.invocation]);
@@ -40,6 +48,23 @@ const Dialog = () => {
           width: '100%',
         }}
       >
+        {
+          existingMovies?.map((movie: ExistingMovie) => {
+            return (
+              <EntityList.Item
+                key={movie.id}
+                title={movie.name}
+                thumbnailUrl={movie.image}
+                status='published'
+                onClick={() => {
+                  sdk.close({
+                    entryId: movie.id
+                  });
+                }}
+              />
+            )
+          })
+        }
         {movie.map((item, i) => {
           return (
             <EntityList.Item
