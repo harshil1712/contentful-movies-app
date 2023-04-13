@@ -20,7 +20,9 @@ const Dialog = () => {
   useAutoResizer();
 
   const [movie, setMovie] = useState<Movie[] | undefined>();
-  const [existingMovies, setExistingMovies] = useState<ExistingMovie[]>()
+
+  // @ts-expect-error
+  const [existingMovies, setExistingMovies] = useState<ExistingMovie[]>(sdk.parameters.invocation.existingEntries)
   const { apiKey } = sdk.parameters.installation;
 
   const fetchData = async (searchTerm: string) => {
@@ -33,9 +35,8 @@ const Dialog = () => {
 
   useEffect(() => {
     // @ts-expect-error
-    setExistingMovies(sdk.parameters.invocation.existingEntries)
-    // @ts-expect-error
     fetchData(sdk.parameters.invocation.movieName);
+
   });
 
   if (!movie) {
