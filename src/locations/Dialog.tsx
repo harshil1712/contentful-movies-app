@@ -36,7 +36,7 @@ const Dialog = () => {
     setExistingMovies(sdk.parameters.invocation.existingEntries)
     // @ts-expect-error
     fetchData(sdk.parameters.invocation.movieName);
-  }, []);
+  });
 
   if (!movie) {
     return <Spinner size="large" />;
