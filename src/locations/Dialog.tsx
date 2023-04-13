@@ -22,7 +22,7 @@ const Dialog = () => {
   const [movie, setMovie] = useState<Movie[] | undefined>();
 
   // @ts-expect-error
-  const [existingMovies, setExistingMovies] = useState<ExistingMovie[]>(sdk.parameters.invocation.existingEntries)
+  const [existingMovies] = useState<ExistingMovie[]>(sdk.parameters.invocation.existingEntries)
   const { apiKey } = sdk.parameters.installation;
 
   const fetchData = async (searchTerm: string) => {
